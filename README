@@ -1,4 +1,6 @@
 Extra utility functions for Nu.
+A bit of a kitchen-sink approach at the moment.
+Will factor out common pieces over time.
 
 Use via:
 
