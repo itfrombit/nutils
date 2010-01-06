@@ -38,6 +38,11 @@
      (cdr (cdr x)))
 
 
+(function 1+ (n)
+     (+ n 1))
+
+(function 1- (n)
+     (- n 1))
 
 (macro-1 incf (n *delta)
      (if (not (eq *delta '()))
@@ -69,6 +74,12 @@
                        (else (select-if-acc f (cdr l) acc))))))
      (select-if-acc f l nil))
 
+
+(function nth (n source)
+     (cond
+          ((== n 0) (car source))
+          ((> n (source length)) nil)
+          (else (nth (- n 1) (cdr source)))))
 
 (function nthcdr (n source)
      (cond ((eq n 0)
@@ -166,6 +177,22 @@
                (else (flatten-rec (car x) (flatten-rec (cdr x) acc)))))
      (flatten-rec x nil))
 
+
+;; Returns the tails of a list starting with the first member that matches == test
+(function member (a l)
+     (cond
+          ((null? l) nil)
+          ((atom l) nil)
+          ((== a (car l)) l)
+          (else (member a (cdr l)))))
+
+;; Returns the cons in list l whose car is == to a
+(function assoc (a l)
+     (cond
+          ((null? l) nil)
+          ((atom l) nil)
+          ((== a (car (car l))) (car l))
+          (else (assoc a (cdr l)))))
 
 ;; A few math functions
 (function fact (x)
