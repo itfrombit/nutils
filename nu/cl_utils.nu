@@ -77,6 +77,7 @@
 
 (function nth (n source)
      (cond
+		  ((null? source) nil)
           ((== n 0) (car source))
           ((> n (source length)) nil)
           (else (nth (- n 1) (cdr source)))))
@@ -137,6 +138,19 @@
               (set __nextcall `(let* ,(cdr bindings) ,@*body))
               `(let (,(car bindings))
                     ,__nextcall))))
+
+
+;; Simple stack operations
+(macro push (v l)
+     `(set ,l (cons ,v ,l)))
+
+(macro pop (l)
+     `(progn
+            (cond ((null? ,l) nil)
+                  (else
+                       (set __v (car ,l))
+                       (set ,l (cdr ,l))
+                       __v))))
 
 
 ;; Not part of Common Lisp, but popular functions to have around...
