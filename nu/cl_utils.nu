@@ -77,7 +77,7 @@
 
 (function nth (n source)
      (cond
-		  ((null? source) nil)
+          ((null? source) nil)
           ((== n 0) (car source))
           ((> n (source length)) nil)
           (else (nth (- n 1) (cdr source)))))
@@ -151,6 +151,88 @@
                        (set __v (car ,l))
                        (set ,l (cdr ,l))
                        __v))))
+
+;; simulates CL's m-v-b using a list
+(macro multiple-value-bind (vars vals *body)
+     (set __i 0)
+     (set __evalvals (eval vals))
+     (set __letvars nil)
+     (while (< __i (vars length))
+            (set __letvars (append __letvars (list (list (nth __i vars)
+                                                         `',(nth __i __evalvals)))))
+            (set __i (+ __i 1)))
+     `(let ,__letvars
+           ,@*body))
+
+
+;; anaphoric-if, assign test clause to 'it'
+(macro aif (test-clause then-clause else-clause)
+     `(let ((it ,test-clause))
+           (if it
+               (then ,then-clause)
+               (else ,else-clause))))
+
+;; anaphoric-if with mvb
+;; first return value is test clause return value
+;; second return value is test clause outcome
+;; useful for test clauses that return bindings and true/false
+(macro aif2 (test-clause then-clause else-clause)
+     `(multiple-value-bind (it __win) ,test-clause
+           (if (or it __win)
+               (then ,then-clause)
+               (else ,else-clause))))
+
+;(macro acond2 (*clauses)
+;     (if (null? *clauses)
+;         (then nil)
+;         (else
+;              (let ((cl1 (car *clauses)))
+;                   `(multiple-value-bind (__val __win) ,(car cl1)
+;                         (if (or (not (null? __val)) (not (null? __win)))
+;                             (then
+;                                  (let ((it __val))
+;                                       ,@(cdr cl1)))
+;                             (else
+;                                  (acond2 ,@(cdr *clauses)))))))))
+
+(macro apply-key (key item)
+     `(if ,key
+          (then (,key ,item))
+          (else ,item)))
+
+; substitutes into tree bindings that appear in alist
+; for example:
+; % (sublis '((x 1) (y 2)) '(* x y))
+; (* 1 2)
+
+(function sublis (alist tree)
+     (cond
+          ((null? tree) nil)
+          ((atom tree)
+           (if (assoc tree alist)
+               (then (cadr (assoc tree alist)))
+               (else tree)))
+          (else
+               (cons (sublis alist (car tree)) (sublis alist (cdr tree))))))
+
+(function union (l1 l2)
+     (set r nil)
+     ((list l1 l2) map:
+      (do (l)
+          (set i 0)
+          (while (< i (l length))
+                 (if (not (member (nth i l) r))
+                     (then (push (nth i l) r)))
+                 (incf i))
+          ))
+     r)
+
+;; Fake a gensym and return as a symbol value
+(function gensym (*x)
+     (set s (+ "G" ((floor (rand 999999999)))))
+     (if (and (not (null? *x) (not (null? (car *x)))))
+         (then (set s (+ ((car *x) stringValue) s))))
+     (s symbolValue))
 
 
 ;; Not part of Common Lisp, but popular functions to have around...
